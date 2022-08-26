@@ -1,0 +1,15 @@
+[all]
+192.168.1.176
+
+[all:vars]
+#ansible_python_interpreter=/usr/bin/python3
+
+#####################################################
+# Variables below can be used with AWS instances
+ansible_ssh_private_key_file=/home/danclark/.ssh/snow.pem
+#ansible_connection=local
+ansible_user=centos
+#ansible_become=yes
+ansible_become_method=sudo
+ansible_become_user=root
+
