@@ -83,3 +83,13 @@
     - name: Install Convert2RHEL
       yum:
         name: convert2rhel
+        state: latest
+
+    - name: Update all packages
+      yum:
+        name: '*'
+        state: 'latest'
+
+    - name: reboot
+      reboot:
+
