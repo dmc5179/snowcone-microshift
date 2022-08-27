@@ -62,7 +62,7 @@
         name: sshd
 
     - name: Unload floppy kernel module
-        community.general.modprobe:
+      community.general.modprobe:
         name: floppy
         state: absent
 
