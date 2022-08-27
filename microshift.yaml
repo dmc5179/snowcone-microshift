@@ -1,0 +1,105 @@
+---
+- hosts: all
+  gather_facts: true
+  become: true
+  tasks:
+
+#    - name: Upgrade all packages
+#      ansible.builtin.dnf:
+#        name: "*"
+#        state: latest
+
+#    - name: Reboot the server
+#      shell: "sleep 5 && reboot"
+#      async: 1
+#      poll: 0
+    
+#    - name: Wait for the reboot and reconnect 
+#      delegate_to: localhost
+#      wait_for:
+#        port: 22
+#        host: '{{ (ansible_ssh_host|default(ansible_host))|default(inventory_hostname) }}'
+#        search_regex: OpenSSH
+#        delay: 10
+#        timeout: 60
+
+    - name: Drop pull-secret on system
+
+    - name: enable cri-o
+      shell: "dnf module enable -y cri-o:1.21"
+
+    - name: Install cri-o
+      ansible.builtin.dnf:
+        name:
+          - cri-o
+          - cri-tools
+        state: latest
+
+    - name: enable cri-o systemd service
+      ansible.builtin.systemd:
+        state: started
+        name: crio
+        daemon_reload: true
+        masked: false
+        enabled: true
+
+    - name: Install firewalld
+      ansible.builtin.dnf:
+        name: firewalld
+        state: latest
+
+    - name: enable firewalld systemd service
+      ansible.builtin.systemd:
+        state: started
+        name: firewalld
+        daemon_reload: true
+        masked: false
+        enabled: true
+
+    - name: Enable ports for microshift in firewalld
+      ansible.posix.firewalld:
+        zone: public
+        port: "{{ item }}"
+        permanent: true
+        immediate: true
+        state: enabled
+      loop:
+        - "80/tcp"
+        - "443/tcp"
+        - "5353/udp"
+
+    - name: Enable ports for microshift in firewalld
+      ansible.posix.firewalld:
+        zone: trusted
+        source: "10.42.0.0/16"
+        permanent: true
+        immediate: true
+        state: enabled
+
+    - name: Reload firewalld rules
+
+
+    # TODO: Better way to do this?
+    - name: Enable copr dnf module
+      command: dnf copr enable -y "@redhat-et/microshift"
+
+    - name: Install microshift
+      ansible.builtin.dnf:
+        name: microshift
+        state: latest
+
+    - name: Drop pull-secret on system
+      copy:
+        src: pull-secret
+        dest: /etc/microshift/openshift-pull-secret
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Start and enable microshift
+      ansible.builtin.systemd:
+        state: started
+        name: microshift
+        daemon_reload: true
+        masked: false
+        enabled: true
