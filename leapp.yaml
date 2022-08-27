@@ -67,7 +67,7 @@
         state: absent
 
     - name: Unload floppy kernel module
-        community.general.modprobe:
+      community.general.modprobe:
         name: pata_acpi
         state: absent
 
