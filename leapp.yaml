@@ -25,15 +25,46 @@
 #    - name: reboot
 #      reboot:
 
-    - name: Install leapp packages
-      yum:
-        name: leapp-upgrade
-        state: latest
+#    - name: Install leapp packages
+#      yum:
+#        name: leapp-upgrade
+#        state: latest
 
     - name: Drop answer file in place
+      ansible.builtin.template:
+        src: leapp-answerfile.j2
+        dest: /var/log/leapp/answerfile
+        owner: root
+        group: root
+        mode: '0644'
 
     - name: Configure root password
+      ansible.builtin.user:
+        name: root
+        expires: -1
+        password: "$6$gV5Jydx.oiRd1uE2$CfooJSV9sofvre/S3/HIiuArnd31hsBvR90MA0vVZXBbCCQh4t1Hdn2BETWKCXFh5BBH1w83QqFFjt2n7wsrH/"
 
     - name: Change ssh daemon settings for leapp
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#PermitRootLogin '
+        line: "PermitRootLogin yes"
+
+    - name: Change ssh daemon settings for leapp
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PasswordAuthentication '
+        line: "PasswordAuthentication yes"
 
     - name: Restart ssh daemon
+      ansible.builtin.systemd:
+        state: restarted
+        name: sshd
+
+    - name: Leapp from RHEL 7 to RHEL 8
+      command: "leapp upgrade --verbose --debug"
+
+      # Reboot after leapp can take awhile
+    - name: reboot
+      reboot:
+        reboot_timeout: 1800
