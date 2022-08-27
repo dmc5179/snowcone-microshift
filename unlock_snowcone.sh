@@ -34,6 +34,8 @@ snowballEdge get-secret-access-key --access-key-id "access_key from above comman
 # Create a key-pair for instances to use
 snow create-key-pair --key-name danclark-snowcone
 
+# creating the key pair prints out in json. Convert that to your SSH RSA key file
+
 # Describe available AMIs
 snow describe-images
 
