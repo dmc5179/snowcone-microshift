@@ -1,0 +1,39 @@
+---
+- hosts: all
+  gather_facts: true
+  become: true
+  tasks:
+
+#    - name: Enable rhel-7-server-rpms
+#      command: subscription-manager repos --enable rhel-7-server-rpms
+
+#    - name: Enable rhel-7-server-extras-rpms
+#      command: subscription-manager repos --enable rhel-7-server-extras-rpms
+
+#    - name: Unset release
+#      command: subscription-manager release --unset
+
+# TODO: Not all systems have this command, check first
+#    - name: Clear versionlock
+#      command: yum versionlock clear
+
+#    - name: Update all packages
+#      yum:
+#        name: '*'
+#        state: 'latest'
+
+#    - name: reboot
+#      reboot:
+
+    - name: Install leapp packages
+      yum:
+        name: leapp-upgrade
+        state: latest
+
+    - name: Drop answer file in place
+
+    - name: Configure root password
+
+    - name: Change ssh daemon settings for leapp
+
+    - name: Restart ssh daemon
