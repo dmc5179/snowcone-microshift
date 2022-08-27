@@ -61,6 +61,16 @@
         state: restarted
         name: sshd
 
+    - name: Unload floppy kernel module
+        community.general.modprobe:
+        name: floppy
+        state: absent
+
+    - name: Unload floppy kernel module
+        community.general.modprobe:
+        name: pata_acpi
+        state: absent
+
     - name: Leapp from RHEL 7 to RHEL 8
       command: "leapp upgrade --verbose --debug"
 
