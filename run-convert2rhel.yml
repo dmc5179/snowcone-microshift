@@ -50,7 +50,7 @@
             --password-from-file "{{ password_file.path }}"
             --auto-attach
             --debug
-            # -y
+            -y
 
       always:
         - name: Remove the temporary file
@@ -70,3 +70,13 @@
       assert:
         that: ansible_distribution == 'RedHat'
         msg: "OS conversion failed. OS is NOT Red Hat"
+
+    - name: Disable Convert2RHEL yum repository from Red Hat
+      yum_repository:
+        name: convert2rhel
+        description: Convert2RHEL for OS {{ ansible_distribution_major_version }}
+        baseurl: "https://cdn.redhat.com/content/public/convert2rhel/{{ ansible_distribution_major_version }}/x86_64/os/"
+        enabled: false
+        gpgcheck: yes
+        gpgkey: "file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release"
+        sslcacert: "/etc/rhsm/ca/redhat-uep.pem"
