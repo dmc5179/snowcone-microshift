@@ -79,3 +79,9 @@
 #    - name: reboot
 #      reboot:
 #        reboot_timeout: 1800
+
+    - name: Remove old kernel packages and dependencies
+      dnf:
+        name: "kernel-3*"
+        state: absent
+        autoremove: true
