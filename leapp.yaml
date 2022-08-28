@@ -80,6 +80,15 @@
 #      reboot:
 #        reboot_timeout: 1800
 
+    - name: Ensure SELinux is set to enforcing mode
+      ansible.builtin.lineinfile:
+        path: /etc/selinux/config
+        regexp: '^SELINUX='
+        line: SELINUX=enforcing
+
+    - name: Enable SELinux now
+      command: setenforce 1
+
     - name: Remove old kernel packages and dependencies
       dnf:
         name: "kernel-3*"
