@@ -75,6 +75,7 @@
       command: "leapp upgrade --verbose --debug"
 
       # Reboot after leapp can take awhile
-    - name: reboot
-      reboot:
-        reboot_timeout: 1800
+      # Cannot use this because the SSH server key changes
+#    - name: reboot
+#      reboot:
+#        reboot_timeout: 1800
