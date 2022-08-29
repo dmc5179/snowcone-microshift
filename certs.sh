@@ -16,7 +16,7 @@ EOF
 ADDITIONAL_NAMES="microshift.danclark.io"
 
 i=1
-for dns in $(sudo openssl x509 -in /var/lib/microshift/certs/kube-apiserver/secrets/service-network-serving-certkey/tls.crt -text | grep "X509v3 Subject Alternative Name:" -A1 | tail -1 | tr -d ' ' | tr ',' '\n' | grep 'DNS:')
+for dns in $(sudo openssl x509 -in /var/lib/microshift/certs/kube-apiserver/secrets/service-network-serving-certkey/tls.crt -text | grep "X509v3 Subject Alternative Name:" -A1 | tail -1 | tr ',' '\n' | grep 'DNS:' | tr -d ' ' | awk -F\: '{print $NF}')
 do
   echo "DNS.${i} = ${dns}" >> api.conf
   let i=i+1
@@ -29,7 +29,7 @@ do
 done
 
 i=1
-for ip in $(sudo openssl x509 -in /var/lib/microshift/certs/kube-apiserver/secrets/service-network-serving-certkey/tls.crt -text | grep "X509v3 Subject Alternative Name:" -A1 | tail -1 | tr -d ' ' | tr ',' '\n' | grep 'IP Address:')
+for ip in $(sudo openssl x509 -in /var/lib/microshift/certs/kube-apiserver/secrets/service-network-serving-certkey/tls.crt -text | grep "X509v3 Subject Alternative Name:" -A1 | tail -1 | tr ',' '\n' | grep 'IP Address:' | tr -d ' ' | awk -F\: '{print $NF}')
 do
   echo "IP.${i} = ${ip}" >> api.conf
   let i=i+1
