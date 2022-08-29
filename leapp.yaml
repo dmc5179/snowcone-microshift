@@ -4,31 +4,31 @@
   become: true
   tasks:
 
-#    - name: Enable rhel-7-server-rpms
-#      command: subscription-manager repos --enable rhel-7-server-rpms
+    - name: Enable rhel-7-server-rpms
+      command: subscription-manager repos --enable rhel-7-server-rpms
 
-#    - name: Enable rhel-7-server-extras-rpms
-#      command: subscription-manager repos --enable rhel-7-server-extras-rpms
+    - name: Enable rhel-7-server-extras-rpms
+      command: subscription-manager repos --enable rhel-7-server-extras-rpms
 
-#    - name: Unset release
-#      command: subscription-manager release --unset
+    - name: Unset release
+      command: subscription-manager release --unset
 
 # TODO: Not all systems have this command, check first
 #    - name: Clear versionlock
 #      command: yum versionlock clear
 
-#    - name: Update all packages
-#      yum:
-#        name: '*'
-#        state: 'latest'
+    - name: Update all packages
+      yum:
+        name: '*'
+        state: 'latest'
 
-#    - name: reboot
-#      reboot:
+    - name: reboot
+      reboot:
 
-#    - name: Install leapp packages
-#      yum:
-#        name: leapp-upgrade
-#        state: latest
+    - name: Install leapp packages
+      yum:
+        name: leapp-upgrade
+        state: latest
 
     - name: Drop answer file in place
       ansible.builtin.template:
@@ -72,7 +72,9 @@
         state: absent
 
     - name: Leapp from RHEL 7 to RHEL 8
-      command: "leapp upgrade --verbose --debug"
+      command: "leapp upgrade --reboot --verbose --debug"
+
+# Commands below need to be run after leapp completes
 
       # Reboot after leapp can take awhile
       # Cannot use this because the SSH server key changes
@@ -80,17 +82,17 @@
 #      reboot:
 #        reboot_timeout: 1800
 
-    - name: Ensure SELinux is set to enforcing mode
-      ansible.builtin.lineinfile:
-        path: /etc/selinux/config
-        regexp: '^SELINUX='
-        line: SELINUX=enforcing
+#    - name: Ensure SELinux is set to enforcing mode
+#      ansible.builtin.lineinfile:
+#        path: /etc/selinux/config
+#        regexp: '^SELINUX='
+#        line: SELINUX=enforcing
 
-    - name: Enable SELinux now
-      command: setenforce 1
+#    - name: Enable SELinux now
+#      command: setenforce 1
 
-    - name: Remove old kernel packages and dependencies
-      dnf:
-        name: "kernel-3*"
-        state: absent
-        autoremove: true
+#    - name: Remove old kernel packages and dependencies
+#      dnf:
+#        name: "kernel-3*"
+#        state: absent
+#        autoremove: true
