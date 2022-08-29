@@ -4,29 +4,85 @@
   become: true
   tasks:
 
-#    - name: Upgrade all packages
-#      ansible.builtin.dnf:
-#        name: "*"
-#        state: latest
+    - name: check if we have oc installed
+      command: which oc
+      register: oc_present
+      ignore_errors: true
 
-#    - name: Reboot the server
-#      shell: "sleep 5 && reboot"
-#      async: 1
-#      poll: 0
+    - name: create .kube home dir
+      ansible.builtin.file:
+        path: /root/.kube/
+        state: directory
     
-#    - name: Wait for the reboot and reconnect 
-#      delegate_to: localhost
-#      wait_for:
-#        port: 22
-#        host: '{{ (ansible_ssh_host|default(ansible_host))|default(inventory_hostname) }}'
-#        search_regex: OpenSSH
-#        delay: 10
-#        timeout: 60
+    - name: download and extract oc client
+      ansible.builtin.unarchive:
+        src: "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux.tar.gz"
+        dest: /usr/bin
+        remote_src: yes
+      when: oc_present.rc != 0
 
-    - name: Drop pull-secret on system
+    - name: Install firewalld
+      ansible.builtin.dnf:
+        name: firewalld
+        state: latest
 
-    - name: enable cri-o
-      shell: "dnf module enable -y cri-o:1.21"
+    - name: enable firewalld systemd service
+      ansible.builtin.systemd:
+        state: started
+        name: firewalld
+        daemon_reload: true
+        masked: false
+        enabled: true
+
+    - name: permit traffic in trusted zone from CIDR
+      ansible.posix.firewalld:
+        source: "{{ item }}"
+        state: enabled
+        immediate: yes
+        permanent: yes
+        zone: trusted
+      with_items:
+        - 10.42.0.0/16
+        - 169.254.169.1/32
+    
+    - name: permit traffic in public zone for services
+      ansible.posix.firewalld:
+        service: "{{ item }}"
+        state: enabled
+        immediate: yes
+        permanent: yes
+        zone: public
+      with_items:
+        - http
+        - https
+        - mdns
+    
+    - name: permit traffic in public zone for ports
+      ansible.posix.firewalld:
+        port: "{{ item }}"
+        state: enabled
+        immediate: yes
+        permanent: yes
+        zone: public
+      with_items:
+        - 80/tcp
+        - 443/tcp
+        - 5353/udp
+        - 6443/tcp
+        - 8080/tcp
+        - 9100/tcp
+        - 9537/tcp
+        - 17001/tcp
+        - 30000-32767/tcp
+        - 30000-32767/udp
+
+    - name: enable microshift copr repo
+      community.general.copr:
+        name: '@redhat-et/microshift'
+        state: enabled
+
+    - name: Enable RHOCP repo
+      command: subscription-manager repos --enable rhocp-4.8-for-rhel-8-x86_64-rpms
 
     - name: Install cri-o
       ansible.builtin.dnf:
@@ -43,46 +99,6 @@
         masked: false
         enabled: true
 
-    - name: Install firewalld
-      ansible.builtin.dnf:
-        name: firewalld
-        state: latest
-
-    - name: enable firewalld systemd service
-      ansible.builtin.systemd:
-        state: started
-        name: firewalld
-        daemon_reload: true
-        masked: false
-        enabled: true
-
-    - name: Enable ports for microshift in firewalld
-      ansible.posix.firewalld:
-        zone: public
-        port: "{{ item }}"
-        permanent: true
-        immediate: true
-        state: enabled
-      loop:
-        - "80/tcp"
-        - "443/tcp"
-        - "5353/udp"
-
-    - name: Enable ports for microshift in firewalld
-      ansible.posix.firewalld:
-        zone: trusted
-        source: "10.42.0.0/16"
-        permanent: true
-        immediate: true
-        state: enabled
-
-    - name: Reload firewalld rules
-
-
-    # TODO: Better way to do this?
-    - name: Enable copr dnf module
-      command: dnf copr enable -y "@redhat-et/microshift"
-
     - name: Install microshift
       ansible.builtin.dnf:
         name: microshift
@@ -91,15 +107,24 @@
     - name: Drop pull-secret on system
       copy:
         src: pull-secret
-        dest: /etc/microshift/openshift-pull-secret
+        dest: /etc/crio/openshift-pull-secret
         owner: root
         group: root
         mode: '0644'
 
-    - name: Start and enable microshift
-      ansible.builtin.systemd:
-        state: started
-        name: microshift
-        daemon_reload: true
-        masked: false
-        enabled: true
+#    - name: Start and enable microshift
+#      ansible.builtin.systemd:
+#        state: started
+#        name: microshift
+#        daemon_reload: true
+#        masked: false
+#        enabled: true
+
+#    - name: wait for kubeconfig to exist on microshift node
+#      ansible.builtin.stat:
+#        path: "/var/lib/microshift/resources/kubeadmin/kubeconfig"
+#      register: remote_kubeconfig
+#      until: remote_kubeconfig.stat.exists
+#      retries: 30
+#      delay: 10
+
