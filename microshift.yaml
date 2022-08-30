@@ -91,9 +91,17 @@
           - cri-tools
         state: latest
 
+    - name: Drop pull-secret on system
+      copy:
+        src: pull-secret
+        dest: /etc/crio/openshift-pull-secret
+        owner: root
+        group: root
+        mode: '0644'
+
     - name: enable cri-o systemd service
       ansible.builtin.systemd:
-        state: started
+        state: restarted
         name: crio
         daemon_reload: true
         masked: false
@@ -104,27 +112,19 @@
         name: microshift
         state: latest
 
-    - name: Drop pull-secret on system
-      copy:
-        src: pull-secret
-        dest: /etc/crio/openshift-pull-secret
-        owner: root
-        group: root
-        mode: '0644'
+    - name: Start and enable microshift
+      ansible.builtin.systemd:
+        state: restarted
+        name: microshift
+        daemon_reload: true
+        masked: false
+        enabled: true
 
-#    - name: Start and enable microshift
-#      ansible.builtin.systemd:
-#        state: started
-#        name: microshift
-#        daemon_reload: true
-#        masked: false
-#        enabled: true
-
-#    - name: wait for kubeconfig to exist on microshift node
-#      ansible.builtin.stat:
-#        path: "/var/lib/microshift/resources/kubeadmin/kubeconfig"
-#      register: remote_kubeconfig
-#      until: remote_kubeconfig.stat.exists
-#      retries: 30
-#      delay: 10
+    - name: wait for kubeconfig to exist on microshift node
+      ansible.builtin.stat:
+        path: "/var/lib/microshift/resources/kubeadmin/kubeconfig"
+      register: remote_kubeconfig
+      until: remote_kubeconfig.stat.exists
+      retries: 30
+      delay: 10
 
