@@ -74,25 +74,8 @@
     - name: Leapp from RHEL 7 to RHEL 8
       command: "leapp upgrade --reboot --verbose --debug"
 
-# Commands below need to be run after leapp completes
-
       # Reboot after leapp can take awhile
       # Cannot use this because the SSH server key changes
 #    - name: reboot
 #      reboot:
 #        reboot_timeout: 1800
-
-#    - name: Ensure SELinux is set to enforcing mode
-#      ansible.builtin.lineinfile:
-#        path: /etc/selinux/config
-#        regexp: '^SELINUX='
-#        line: SELINUX=enforcing
-
-#    - name: Enable SELinux now
-#      command: setenforce 1
-
-#    - name: Remove old kernel packages and dependencies
-#      dnf:
-#        name: "kernel-3*"
-#        state: absent
-#        autoremove: true

@@ -1,0 +1,38 @@
+---
+- hosts: all
+  gather_facts: true
+  become: true
+  tasks:
+
+    - name: Remove leapp packages from dnf.conf protection
+      lineinfile:
+        path: /etc/dnf/dnf.conf
+        regexp: "exclude=python2-leapp,snactor,leapp-upgrade-el7toel8,leapp"
+        state: absent
+
+    - name: Ensure SELinux is set to enforcing mode
+      ansible.builtin.lineinfile:
+        path: /etc/selinux/config
+        regexp: '^SELINUX='
+        line: SELINUX=enforcing
+
+    - name: Enable SELinux now
+      command: setenforce 1
+
+#    - name: Remove old kernel packages and dependencies
+#      dnf:
+#        name: "kernel-3*"
+#        state: absent
+#        autoremove: true
+
+    - name: Remove leapp packages
+      dnf:
+        name: "{{ item }}"
+        state: absent
+        autoremove: true
+      loop:
+        - "leapp"
+        - "python2-leapp"
+        - "leapp-upgrade-el7toel8"
+        - "yum-plugin-fastestmirror*el7*"
+        - "ustr*el7*"
